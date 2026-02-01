@@ -16,6 +16,9 @@ COPY requirements.txt .
 # Install python dependencies from requirements.txt
 RUN uv pip install --system --no-cache -r requirements.txt
 
+# Set Playwright Browsers Path explicitly to valid system path
+ENV PLAYWRIGHT_BROWSERS_PATH=/ms-playwright
+
 # Install Playwright browsers/dependencies
 # Run directly with python module to avoid uv venv issues
 RUN python -m playwright install-deps
