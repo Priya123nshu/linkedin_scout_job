@@ -251,7 +251,6 @@ def main() -> None:
     # Phase 1: Ensure Authentication is Ready
     try:
         ensure_authentication_ready()
-        print("✅ Authentication ready")
         logger.info("Authentication ready")
 
     except CredentialsNotFoundError as e:
@@ -260,7 +259,7 @@ def main() -> None:
             print("\n❌ Authentication required")
             print(str(e))
         else:
-            print("\n❌ Authentication required for non-interactive mode")
+            logger.error(f"Authentication required: {e}")
         sys.exit(1)
 
     except KeyboardInterrupt:

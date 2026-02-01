@@ -16,14 +16,18 @@ def get_server_parameters():
     env = os.environ.copy()
     
     # Check for BYO-Cookie from main.py API (supports Render/Vercel ephemeral session)
-    cookie_path = os.path.join(tempfile.gettempdir(), "linkedin_cookie.txt")
+    if os.name == 'nt':
+        cookie_path = os.path.join(tempfile.gettempdir(), "linkedin_cookie.txt")
+    else:
+        cookie_path = "/tmp/linkedin_cookie.txt"
+        
     if os.path.exists(cookie_path):
         try:
             with open(cookie_path, "r", encoding="utf-8") as f:
                 cookie = f.read().strip()
                 if cookie:
                     env["LINKEDIN_COOKIE"] = cookie
-                    # print(f"DEBUG: Injected LINKEDIN_COOKIE from {cookie_path}")
+                    print(f"DEBUG: Injected LINKEDIN_COOKIE from {cookie_path} (len={len(cookie)})")
         except Exception as e:
             print(f"Error reading cookie file: {e}")
 
@@ -128,12 +132,16 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
             return [], debug_info
 
         jobs = []
+        import gc
         for url in job_urls[:limit]:
             detail = await get_details(url)
             if detail:
                 jobs.append(detail)
+            
+            # Force cleanup to satisfy 512MB limit
+            gc.collect()
             # Small delay to be gentle on CPU/Memory
-            await asyncio.sleep(0.5)
+            await asyncio.sleep(1.0)
         
         valid_jobs = [j for j in jobs if j is not None]
         print(f"Successfully fetched {len(valid_jobs)} job details")
