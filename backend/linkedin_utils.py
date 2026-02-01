@@ -28,8 +28,8 @@ def get_server_parameters():
             print(f"Error reading cookie file: {e}")
 
     return StdioServerParameters(
-        command="uv",
-        args=["run", "--directory", local_mcp_dir, "-m", "linkedin_mcp_server.cli_main", "--transport", "stdio"],
+        command="python",
+        args=["-m", "linkedin_mcp_server.cli_main", "--transport", "stdio"],
         env=env
     )
 
