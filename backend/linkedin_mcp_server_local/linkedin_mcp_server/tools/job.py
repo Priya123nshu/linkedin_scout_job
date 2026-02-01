@@ -53,6 +53,22 @@ class CustomJobScraper(JobScraper):
             logger.error(f"Error extracting job title: {e}")
             return None
 
+class CustomJobSearchScraper(JobSearchScraper):
+    """
+    Subclass with debugging for 0 results.
+    """
+    async def search(self, keywords: str, location: str | None = None, limit: int = 25, offset: int = 0) -> list[str]:
+        results = await super().search(keywords, location, limit, offset)
+        if not results:
+             title = await self.page.title()
+             content = await self.page.content()
+             logger.error(f"DEBUG: Found 0 results. Page Title: {title}")
+             if "authwall" in content.lower() or "sign in" in title.lower():
+                 logger.error("DEBUG: Hit Authwall/Login page.")
+             elif "security check" in title.lower():
+                 logger.error("DEBUG: Hit Security Check (Captcha).")
+        return results
+
 def register_job_tools(mcp: FastMCP) -> None:
     """
     Register all job-related tools with the MCP server.
@@ -140,7 +156,8 @@ def register_job_tools(mcp: FastMCP) -> None:
             logger.info(f"Searching jobs: keywords='{keywords}', location='{location}'")
 
             browser = await get_or_create_browser()
-            scraper = JobSearchScraper(
+            # Use CustomJobSearchScraper for debugging
+            scraper = CustomJobSearchScraper(
                 browser.page, callback=MCPContextProgressCallback(ctx)
             )
             job_urls = await scraper.search(
