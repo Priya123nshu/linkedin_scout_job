@@ -18,6 +18,17 @@ from linkedin_utils import (
     get_person_profile
 )
 
+import logging
+import sys
+
+# Configure logging to show up in Render/Docker logs
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    stream=sys.stdout
+)
+logger = logging.getLogger(__name__)
+
 app = FastAPI(title="LinkedIn Job Search API")
 
 # Allow CORS for Next.js frontend
@@ -70,7 +81,7 @@ async def health_check():
 
 @app.post("/search")
 async def search_endpoint(request: SearchRequest):
-    print(f"Received search request: {request}")
+    logger.info(f"Received search request: {request}")
     
     all_job_urls = []
     
