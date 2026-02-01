@@ -1,0 +1,4 @@
+1 validation error for call[search_jobs]
+time_posted
+  Unexpected keyword argument [type=unexpected_keyword_argument, input_value='24h', input_type=str]
+    For further information visit https://errors.pydantic.dev/2.12/v/unexpected_keyword_argument

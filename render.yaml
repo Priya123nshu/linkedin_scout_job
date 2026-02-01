@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: linkedin-backend
+    runtime: docker
+    repo: https://github.com/stickerdaniel/complete_linkedin  # User should update this!
+    region: ohio
+    plan: free
+    dockerContext: backend
+    envVars:
+      - key: PORT
+        value: 10000
+      # User must add CLERK keys in Dashboard
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_JWKS_URL
+        value: https://api.clerk.com/.well-known/jwks.json
