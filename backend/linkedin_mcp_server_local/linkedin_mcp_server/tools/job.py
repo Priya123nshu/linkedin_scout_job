@@ -57,8 +57,9 @@ class CustomJobSearchScraper(JobSearchScraper):
     """
     Subclass with debugging for 0 results.
     """
-    async def search(self, keywords: str, location: str | None = None, limit: int = 25, offset: int = 0) -> list[str]:
-        results = await super().search(keywords, location, limit, offset)
+    async def search(self, keywords: str, location: str | None = None, limit: int = 25) -> list[str]:
+        # 'offset' argument is not supported by the base JobSearchScraper
+        results = await super().search(keywords, location, limit)
         if not results:
              title = await self.page.title()
              content = await self.page.content()
