@@ -17,6 +17,23 @@ from linkedin_scraper import (
 )
 from linkedin_scraper.core import detect_rate_limit
 
+# Resources to block to save memory
+BLOCKED_RESOURCES = [
+    "image",
+    "media",
+    "font",
+    "stylesheet",
+    "other",
+    "ping",
+]
+
+async def _block_heavy_resources(route):
+    """Block images and other heavy resources."""
+    if route.request.resource_type in BLOCKED_RESOURCES:
+        await route.abort()
+    else:
+        await route.continue_()
+
 from linkedin_mcp_server.config import get_config
 from linkedin_mcp_server.utils import get_linkedin_cookie
 
@@ -110,6 +127,13 @@ async def get_or_create_browser(
         try:
             await _browser.load_session(str(session_path))
             logger.info(f"Loaded session from {session_path}")
+            
+            # Optimization: Block heavy resources
+            await _browser.page.route("**/*", _block_heavy_resources)
+            
+            # Increase timeout for slow cloud environment (60s)
+            _browser.page.set_default_timeout(60000)
+
             # Navigate to LinkedIn to validate session
             await _browser.page.goto("https://www.linkedin.com/feed/")
             if await is_logged_in(_browser.page):
@@ -124,6 +148,12 @@ async def get_or_create_browser(
     # Priority 2: Use cookie from environment
     if cookie := get_linkedin_cookie():
         try:
+            # Optimization: Block heavy resources BEFORE login
+            await _browser.page.route("**/*", _block_heavy_resources)
+            
+             # Increase timeout for slow cloud environment (60s)
+            _browser.page.set_default_timeout(60000)
+
             await login_with_cookie(_browser.page, cookie)
             logger.info("Authenticated using LINKEDIN_COOKIE")
             _apply_browser_settings(_browser)
