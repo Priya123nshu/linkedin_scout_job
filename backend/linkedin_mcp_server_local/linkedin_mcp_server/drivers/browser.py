@@ -140,8 +140,8 @@ async def get_or_create_browser(
             # Optimization: Block heavy resources
             await _browser.page.route("**/*", _block_heavy_resources)
             
-            # Increase timeout for slow cloud environment (90s)
-            _browser.page.set_default_timeout(90000)
+            # Increase timeout for slow cloud environment (120s)
+            _browser.page.set_default_timeout(120000)
 
             # Navigate to LinkedIn to validate session (wait until domcontentloaded is enough)
             await _browser.page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded")
@@ -160,8 +160,8 @@ async def get_or_create_browser(
             # Optimization: Block heavy resources BEFORE login
             await _browser.page.route("**/*", _block_heavy_resources)
             
-             # Increase timeout for slow cloud environment (90s)
-            _browser.page.set_default_timeout(90000)
+             # Increase timeout for slow cloud environment (120s)
+            _browser.page.set_default_timeout(120000)
 
             await login_with_cookie(_browser.page, cookie)
             logger.info("Authenticated using LINKEDIN_COOKIE")
