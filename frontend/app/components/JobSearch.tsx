@@ -33,6 +33,11 @@ export default function JobSearch() {
       const token = await getToken()
 
       const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8001'
+      console.log('Use api url', apiUrl)
+      console.log('Sending search request to:', `${apiUrl}/search`, {
+        keywords, location, limit, timePosted
+      })
+
       const response = await axios.post(
         `${apiUrl}/search`,
         {
