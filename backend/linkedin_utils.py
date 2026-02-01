@@ -127,8 +127,13 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
         if not job_urls:
             return [], debug_info
 
-        tasks = [get_details(url) for url in job_urls[:limit]]
-        jobs = await asyncio.gather(*tasks)
+        jobs = []
+        for url in job_urls[:limit]:
+            detail = await get_details(url)
+            if detail:
+                jobs.append(detail)
+            # Small delay to be gentle on CPU/Memory
+            await asyncio.sleep(0.5)
         
         valid_jobs = [j for j in jobs if j is not None]
         print(f"Successfully fetched {len(valid_jobs)} job details")

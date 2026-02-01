@@ -84,6 +84,9 @@ async def get_or_create_browser(
         "--disable-dev-shm-usage",
         "--disable-accelerated-2d-canvas",
         "--disable-gpu",
+        "--single-process", # Run in single process inside Docker to save memory
+        "--no-zygote",
+        "--renderer-process-limit=1",
     ]
 
     logger.info(
