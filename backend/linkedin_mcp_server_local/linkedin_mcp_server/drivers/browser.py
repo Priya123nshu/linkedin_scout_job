@@ -106,6 +106,15 @@ async def get_or_create_browser(
         "--renderer-process-limit=1",
     ]
 
+    # Stealth args to avoid detection/slow loading
+    launch_options["args"].extend([
+        "--disable-blink-features=AutomationControlled",
+        "--disable-extensions",
+        "--disable-logging",
+        "--disable-notifications",
+        "--window-size=1280,720",
+    ])
+
     logger.info(
         "Creating new browser (headless=%s, slow_mo=%sms, viewport=%sx%s)",
         _headless,
@@ -116,7 +125,7 @@ async def get_or_create_browser(
     _browser = BrowserManager(
         headless=_headless,
         slow_mo=config.browser.slow_mo,
-        user_agent=config.browser.user_agent,
+        user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         viewport=viewport,
         **launch_options,
     )
@@ -131,11 +140,11 @@ async def get_or_create_browser(
             # Optimization: Block heavy resources
             await _browser.page.route("**/*", _block_heavy_resources)
             
-            # Increase timeout for slow cloud environment (60s)
-            _browser.page.set_default_timeout(60000)
+            # Increase timeout for slow cloud environment (90s)
+            _browser.page.set_default_timeout(90000)
 
-            # Navigate to LinkedIn to validate session
-            await _browser.page.goto("https://www.linkedin.com/feed/")
+            # Navigate to LinkedIn to validate session (wait until domcontentloaded is enough)
+            await _browser.page.goto("https://www.linkedin.com/feed/", wait_until="domcontentloaded")
             if await is_logged_in(_browser.page):
                 _apply_browser_settings(_browser)
                 return _browser
@@ -151,8 +160,8 @@ async def get_or_create_browser(
             # Optimization: Block heavy resources BEFORE login
             await _browser.page.route("**/*", _block_heavy_resources)
             
-             # Increase timeout for slow cloud environment (60s)
-            _browser.page.set_default_timeout(60000)
+             # Increase timeout for slow cloud environment (90s)
+            _browser.page.set_default_timeout(90000)
 
             await login_with_cookie(_browser.page, cookie)
             logger.info("Authenticated using LINKEDIN_COOKIE")
