@@ -77,7 +77,11 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
             for content in result.content:
                 if content.type == "text":
                     text = content.text
+                    print(f"DEBUG: Raw Tool Response: {text[:500]}...") # Log first 500 chars
                     data = safe_parse_json(text)
+                    if not data:
+                        print(f"DEBUG: JSON Parsing Failed for: {text}")
+                    
                     if data:
                         if isinstance(data, dict):
                             urls = data.get("job_urls", [])
