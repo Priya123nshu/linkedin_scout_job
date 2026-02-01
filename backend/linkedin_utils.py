@@ -137,11 +137,8 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
             detail = await get_details(url)
             if detail:
                 jobs.append(detail)
-            
-            # Force cleanup to satisfy 512MB limit
-            gc.collect()
             # Small delay to be gentle on CPU/Memory
-            await asyncio.sleep(1.0)
+            await asyncio.sleep(0.1)
         
         valid_jobs = [j for j in jobs if j is not None]
         print(f"Successfully fetched {len(valid_jobs)} job details")
