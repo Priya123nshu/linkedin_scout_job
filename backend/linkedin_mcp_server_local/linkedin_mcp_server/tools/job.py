@@ -166,7 +166,22 @@ def register_job_tools(mcp: FastMCP) -> None:
                 limit=limit,
             )
 
-            return {"job_urls": job_urls, "count": len(job_urls)}
+            debug_info = {}
+            if not job_urls:
+                try:
+                    title = await browser.page.title()
+                    debug_info["page_title"] = title
+                    content = await browser.page.content()
+                    if "authwall" in content.lower() or "sign in" in title.lower():
+                        debug_info["reason"] = "Authwall/Login Required"
+                    elif "security check" in title.lower():
+                        debug_info["reason"] = "Security Check/Captcha"
+                    else:
+                        debug_info["reason"] = "Unknown (Page loaded but no jobs found)"
+                except Exception as e:
+                    debug_info["error"] = str(e)
+
+            return {"job_urls": job_urls, "count": len(job_urls), "debug_info": debug_info}
 
         except Exception as e:
             return handle_tool_error(e, "search_jobs")

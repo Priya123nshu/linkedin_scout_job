@@ -70,23 +70,24 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
         job_urls = []
         
         # Iterate over all content blocks as per user suggestion
+        # 2. Extract job URLs and Debug Info
+        debug_info = {}
+        
         if result.content:
             for content in result.content:
                 if content.type == "text":
                     text = content.text
-                    # print(f"DEBUG: Processing content block len={len(text)}")
                     data = safe_parse_json(text)
                     if data:
                         if isinstance(data, dict):
                             urls = data.get("job_urls", [])
                             job_urls.extend(urls)
+                            # Extract debug info if present
+                            if "debug_info" in data:
+                                debug_info = data["debug_info"]
                         elif isinstance(data, list):
-                            # Fallback if list of strings
                             urls = [u for u in data if isinstance(u, str)]
                             job_urls.extend(urls)
-        
-        # Dedup URLs if needed, but extend works consistent with user logic
-
         
         print(f"Found {len(job_urls)} URLs for {keyword}. Fetching details...")
 
@@ -94,9 +95,6 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
         async def get_details(url):
             try:
                 # Extract job_id from URL
-                # Formats: 
-                # https://www.linkedin.com/jobs/view/12345678/
-                # https://www.linkedin.com/jobs/view/12345678
                 import re
                 job_id = None
                 match = re.search(r'view/(\d+)', url)
@@ -114,7 +112,6 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
                     details = safe_parse_json(text)
                     
                     if isinstance(details, dict):
-                        # Ensure URL is included if missing
                         if "url" not in details:
                             details["url"] = url
                         return details
@@ -124,20 +121,18 @@ async def search_jobs(session: ClientSession, keyword: str, limit: int = 10, loc
                 return None
 
         if not job_urls:
-            return []
+            return [], debug_info
 
-        # Limit concurrency if needed, but for <10 items gather is fine
         tasks = [get_details(url) for url in job_urls[:limit]]
         jobs = await asyncio.gather(*tasks)
         
-        # Filter failed fetches
         valid_jobs = [j for j in jobs if j is not None]
         print(f"Successfully fetched {len(valid_jobs)} job details")
-        return valid_jobs
+        return valid_jobs, debug_info
 
     except Exception as e:
         print(f"Error in search_jobs workflow: {e}")
-        return []
+        return [], {"error": str(e)}
 
 async def get_company_profile(session: ClientSession, url: str):
     import json

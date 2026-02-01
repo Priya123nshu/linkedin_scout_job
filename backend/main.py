@@ -94,19 +94,21 @@ async def search_endpoint(request: SearchRequest):
                 await session.initialize()
                 
                 # Iterate through keywords
+                combined_debug_info = {}
                 for keyword in request.keywords:
                     print(f"Searching for: {keyword}...")
                     try:
-                        urls = await search_jobs(
+                        jobs, debug_info = await search_jobs(
                             session, 
                             keyword, 
                             limit=request.limit, 
                             location=request.location,
                             time_posted=request.time_posted
                         )
-                        if urls:
-                            # Add to list (allowing duplicates as requested)
-                            all_job_urls.extend(urls)
+                        if jobs:
+                            all_job_urls.extend(jobs)
+                        if debug_info:
+                            combined_debug_info[keyword] = debug_info
                     except Exception as exc:
                         print(f"Error searching for {keyword}: {exc}")
                         
@@ -116,7 +118,8 @@ async def search_endpoint(request: SearchRequest):
         return {
             "status": "success",
             "count": len(all_job_urls),
-            "jobs": all_job_urls
+            "jobs": all_job_urls,
+            "debug_info": combined_debug_info
         }
 
     except Exception as e:
