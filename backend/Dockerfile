@@ -24,10 +24,10 @@ RUN python -m playwright install chromium
 # Copy application code
 COPY . .
 
-# Install dependencies for the local MCP server (so uv run works instantly)
+# Install dependencies for the local MCP server
 WORKDIR /app/linkedin_mcp_server_local
-ENV UV_HTTP_TIMEOUT=300
-RUN uv sync
+# Install the local package and its dependencies directly into the system python
+RUN uv pip install --system --no-cache -e .
 WORKDIR /app
 
 # Ensure temp directory exists and has permissions (for cookie file)
